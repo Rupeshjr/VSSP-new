@@ -24,7 +24,7 @@ import time
 import uuid
 from enum import Enum
 from google.cloud import firestore
-
+app = FastAPI()
 # Pydantic models for employee data validation
 class PersonalDetails(BaseModel):
     mobileNumber: Optional[str] = None
