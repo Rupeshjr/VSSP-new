@@ -549,9 +549,17 @@ async def export_employees_excel(current_user: User = Depends(get_current_active
                     'Date of Joining': official_details.get('empDOJ', ''),
                     'Manager': official_details.get('manager', ''),
                     'Work Location': official_details.get('workLocation', ''),
+                    'Client': official_details.get('client', ''),
                 })
             
             employees_data.append(flattened_data)
+        
+        # Check if we have data
+        if not employees_data:
+            raise HTTPException(
+                status_code=404,
+                detail="No employee data found to export"
+            )
         
         # Create DataFrame from the data
         df = pd.DataFrame(employees_data)
@@ -566,6 +574,19 @@ async def export_employees_excel(current_user: User = Depends(get_current_active
             # Get the workbook and worksheet for formatting
             workbook = writer.book
             worksheet = writer.sheets['Employees']
+            
+            # Style the header row
+            from openpyxl.styles import Font, PatternFill, Alignment
+            
+            header_font = Font(bold=True, color="FFFFFF")
+            header_fill = PatternFill(start_color="366092", end_color="366092", fill_type="solid")
+            header_alignment = Alignment(horizontal="center", vertical="center")
+            
+            # Apply header styling
+            for cell in worksheet[1]:
+                cell.font = header_font
+                cell.fill = header_fill
+                cell.alignment = header_alignment
             
             # Auto-adjust column widths
             for column in worksheet.columns:
@@ -595,11 +616,15 @@ async def export_employees_excel(current_user: User = Depends(get_current_active
             headers={"Content-Disposition": f"attachment; filename={filename}"}
         )
         
+    except HTTPException:
+        raise
     except Exception as e:
+        print(f"Export error: {str(e)}")  # For debugging
         raise HTTPException(
             status_code=500,
             detail=f"Error exporting employee data: {str(e)}"
         )
+
 
 @app.get("/employees/export/public")
 async def export_employees_excel_public():
@@ -647,9 +672,18 @@ async def export_employees_excel_public():
                     'Date of Joining': official_details.get('empDOJ', ''),
                     'Manager': official_details.get('manager', ''),
                     'Work Location': official_details.get('workLocation', ''),
+                    'Client': official_details.get('client', ''),
                 })
             
             employees_data.append(flattened_data)
+        
+        # Check if we have data
+        if not employees_data:
+            return StreamingResponse(
+                io.BytesIO(b"No employee data found"),
+                media_type="text/plain",
+                headers={"Content-Disposition": "attachment; filename=no_data.txt"}
+            )
         
         # Create DataFrame from the data
         df = pd.DataFrame(employees_data)
@@ -664,6 +698,19 @@ async def export_employees_excel_public():
             # Get the workbook and worksheet for formatting
             workbook = writer.book
             worksheet = writer.sheets['Employees']
+            
+            # Style the header row
+            from openpyxl.styles import Font, PatternFill, Alignment
+            
+            header_font = Font(bold=True, color="FFFFFF")
+            header_fill = PatternFill(start_color="366092", end_color="366092", fill_type="solid")
+            header_alignment = Alignment(horizontal="center", vertical="center")
+            
+            # Apply header styling
+            for cell in worksheet[1]:
+                cell.font = header_font
+                cell.fill = header_fill
+                cell.alignment = header_alignment
             
             # Auto-adjust column widths
             for column in worksheet.columns:
@@ -694,6 +741,7 @@ async def export_employees_excel_public():
         )
         
     except Exception as e:
+        print(f"Public export error: {str(e)}")  # For debugging
         raise HTTPException(
             status_code=500,
             detail=f"Error exporting employee data: {str(e)}"
