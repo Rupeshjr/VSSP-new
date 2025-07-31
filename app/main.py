@@ -30,29 +30,22 @@ app = FastAPI(
     version="1.0.0"
 )
 
-# FIXED CORS CONFIGURATION
+# Add CORS middleware IMMEDIATELY after creating the app and BEFORE any routes
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-        "https://harmonious-starburst-f1652c.netlify.app",  # Your Netlify URL with https://
-        "http://localhost:3000",                             # Local development
-        "http://localhost:3001",                             # Alternative local port
-        "http://localhost:5173",                             # Vite development server
+        "https://harmonious-starburst-f1652c.netlify.app",
+        "http://localhost:3000",
+        "http://localhost:3001",
+        "http://localhost:5173",
+        "*"  # Temporarily allow all origins for testing
     ],
     allow_credentials=True,
-    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],  # Explicitly list methods
-    allow_headers=[
-        "Accept",
-        "Accept-Language",
-        "Content-Language",
-        "Content-Type",
-        "Authorization",
-        "X-Requested-With",
-        "Origin",
-        "Access-Control-Request-Method",
-        "Access-Control-Request-Headers",
-    ],
+    allow_methods=["*"],  # This should handle OPTIONS requests
+    allow_headers=["*"],
+    expose_headers=["*"]
 )
+
 # Pydantic models for employee data validation
 class PersonalDetails(BaseModel):
     mobileNumber: Optional[str] = None
