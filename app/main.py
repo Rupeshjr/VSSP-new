@@ -24,7 +24,35 @@ import time
 import uuid
 from enum import Enum
 from google.cloud import firestore
-app = FastAPI()
+app = FastAPI(
+    title="FastAPI Firebase Authentication",
+    description="Firebase-based authentication system with FastAPI",
+    version="1.0.0"
+)
+
+# FIXED CORS CONFIGURATION
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "https://harmonious-starburst-f1652c.netlify.app",  # Your Netlify URL with https://
+        "http://localhost:3000",                             # Local development
+        "http://localhost:3001",                             # Alternative local port
+        "http://localhost:5173",                             # Vite development server
+    ],
+    allow_credentials=True,
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],  # Explicitly list methods
+    allow_headers=[
+        "Accept",
+        "Accept-Language",
+        "Content-Language",
+        "Content-Type",
+        "Authorization",
+        "X-Requested-With",
+        "Origin",
+        "Access-Control-Request-Method",
+        "Access-Control-Request-Headers",
+    ],
+)
 # Pydantic models for employee data validation
 class PersonalDetails(BaseModel):
     mobileNumber: Optional[str] = None
@@ -270,14 +298,6 @@ app = FastAPI(
     version="1.0.0"
 )
 
-# Add CORS middleware
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["harmonious-starburst-f1652c.netlify.app"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
 
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request:Request, exc: RequestValidationError):
