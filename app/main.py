@@ -24,27 +24,9 @@ import time
 import uuid
 from enum import Enum
 from google.cloud import firestore
-app = FastAPI(
-    title="FastAPI Firebase Authentication",
-    description="Firebase-based authentication system with FastAPI",
-    version="1.0.0"
-)
+
 
 # Add CORS middleware IMMEDIATELY after creating the app and BEFORE any routes
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=[
-        "https://harmonious-starburst-f1652c.netlify.app",
-        "http://localhost:3000",
-        "http://localhost:3001",
-        "http://localhost:5173",
-        "*"  # Temporarily allow all origins for testing
-    ],
-    allow_credentials=True,
-    allow_methods=["*"],  # This should handle OPTIONS requests
-    allow_headers=["*"],
-    expose_headers=["*"]
-)
 
 # Pydantic models for employee data validation
 class PersonalDetails(BaseModel):
@@ -290,8 +272,43 @@ app = FastAPI(
     description="Firebase-based authentication system with FastAPI",
     version="1.0.0"
 )
-
-
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "https://harmonious-starburst-f1652c.netlify.app",
+        "http://localhost:3000",
+        "http://localhost:3001",
+        "http://localhost:5173"
+        # Remove "*" for production - only use specific origins
+    ],
+    allow_credentials=True,
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD", "PATCH"],
+    allow_headers=[
+        "Accept",
+        "Accept-Language",
+        "Content-Language", 
+        "Content-Type",
+        "Authorization",
+        "X-Requested-With",
+        "Origin",
+        "Access-Control-Request-Method",
+        "Access-Control-Request-Headers"
+    ],
+    expose_headers=["*"]
+)
+@app.options("/{path:path}")
+async def handle_options(path: str):
+    """Handle all OPTIONS requests for CORS preflight"""
+    return Response(
+        status_code=200,
+        headers={
+            "Access-Control-Allow-Origin": "https://harmonious-starburst-f1652c.netlify.app",
+            "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS, HEAD, PATCH",
+            "Access-Control-Allow-Headers": "Accept, Accept-Language, Content-Language, Content-Type, Authorization, X-Requested-With, Origin, Access-Control-Request-Method, Access-Control-Request-Headers",
+            "Access-Control-Allow-Credentials": "true",
+            "Access-Control-Max-Age": "86400"
+        }
+    )
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request:Request, exc: RequestValidationError):
      exc_str = f'{exc}'.replace('\n', ' ').replace(' ', ' ')
